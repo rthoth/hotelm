@@ -14,9 +14,10 @@ lazy val root = (project in file("."))
       "dev.zio"       %% "zio-json"          % "0.5.0",
       "org.flywaydb"   % "flyway-core"       % "9.19.1",
       "com.h2database" % "h2"                % "2.1.214",
-      "dev.zio"       %% "zio-test"          % ZioVersion % Test,
-      "dev.zio"       %% "zio-test-sbt"      % ZioVersion % Test,
-      "dev.zio"       %% "zio-test-magnolia" % ZioVersion % Test
+      "dev.zio"       %% "zio-test"          % ZioVersion   % Test,
+      "dev.zio"       %% "zio-test-sbt"      % ZioVersion   % Test,
+      "dev.zio"       %% "zio-test-magnolia" % ZioVersion   % Test,
+      "dev.zio"       %% "zio-mock"          % "1.0.0-RC10" % Test
     ),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )

@@ -10,6 +10,8 @@ trait RoomManager:
 
   def add(room: Room): Task[Room]
 
+  def remove(number: String): Task[Room]
+
 object RoomManager:
 
   def apply(repository: RoomRepository): RoomManager = new Default(repository)
@@ -30,3 +32,9 @@ object RoomManager:
       if room.beds <= 0 then ZIO.fail(HotelmException.InvalidRoom("Number os beds is invalid!"))
       else if room.number.isBlank then ZIO.fail(HotelmException.InvalidRoom("The room's number is invalid!"))
       else ZIO.succeed(room)
+
+    override def remove(number: String): Task[Room] =
+      for removed <- repository
+                       .remove(number)
+                       .someOrFail(HotelmException.RoomNotFound(number))
+      yield removed
