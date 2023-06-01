@@ -42,13 +42,13 @@ object RoomManager:
     override def accept(reservation: Reservation): Task[(Reservation, Room)] =
       for
         room <- roomRepository
-                  .get(reservation.roomNumer)
-                  .someOrFail(HotelmException.RoomNotFound(reservation.roomNumer))
-                  .tapErrorCause(ZIO.logWarningCause(s"It was impossible to find room ${reservation.roomNumer}!", _))
+                  .get(reservation.roomNumber)
+                  .tapErrorCause(ZIO.logWarningCause(s"It was impossible to find room ${reservation.roomNumber}!", _))
+                  .someOrFail(HotelmException.RoomNotFound(reservation.roomNumber))
         _    <- reservationManager
                   .accept(reservation, room)
                   .tapErrorCause(
-                    ZIO.logWarningCause(s"It was impossible to make a reservation for room ${reservation.roomNumer}!", _)
+                    ZIO.logWarningCause(s"It was impossible to make a reservation for room ${reservation.roomNumber}!", _)
                   )
       yield reservation -> room
 

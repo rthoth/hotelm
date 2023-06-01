@@ -10,6 +10,6 @@ case class BookRoomResponse(number: String, client: String, checkIn: LocalDateTi
 object BookRoomResponse:
 
   def apply(reservation: Reservation) =
-    new BookRoomResponse(reservation.roomNumer, reservation.client, reservation.checkIn, reservation.checkOut)
+    new BookRoomResponse(reservation.roomNumber, reservation.client, reservation.checkIn, reservation.checkOut)
 
   given JsonEncoder[BookRoomResponse] = DeriveJsonEncoder.gen

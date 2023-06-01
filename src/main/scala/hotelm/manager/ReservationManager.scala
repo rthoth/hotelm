@@ -34,7 +34,9 @@ object ReservationManager:
         _        <- repository
                       .searchIntersection(room.number, reservation.checkIn, reservation.checkOut)
                       .filterOrFail(_.isEmpty)(HotelmException.RoomUnavailable(room.number))
-      yield ???
+        _        <- repository.add(reservation)
+        _        <- ZIO.logInfo(s"A new reservation for room ${reservation.roomNumber} has been made.")
+      yield (reservation, room)
 
     private def validate(reservation: Reservation): Task[Unit] =
       val duration = Duration.between(reservation.checkIn, reservation.checkOut)

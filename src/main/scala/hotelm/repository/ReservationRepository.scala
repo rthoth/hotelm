@@ -14,6 +14,8 @@ import javax.sql.DataSource
 
 trait ReservationRepository:
 
+  def add(reservation: Reservation): Task[Reservation]
+
   def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]]
 
   def searchIntersection(room: String, checkIn: LocalDateTime, checkOut: LocalDateTime): Task[List[Reservation]]
@@ -24,6 +26,8 @@ object ReservationRepository:
     wire[Default]
 
   private class Default extends ReservationRepository:
+
+    override def add(reservation: Reservation): Task[Reservation] = ???
 
     override def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]] = ???
 
