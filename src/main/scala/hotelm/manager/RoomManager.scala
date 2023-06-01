@@ -1,6 +1,7 @@
 package hotelm.manager
 
 import hotelm.HotelmException
+import hotelm.Reservation
 import hotelm.Room
 import hotelm.repository.RoomRepository
 import zio.Task
@@ -11,6 +12,8 @@ trait RoomManager:
   def add(room: Room): Task[Room]
 
   def remove(number: String): Task[Room]
+
+  def accept(reservation: Reservation): Task[(Reservation, Room)]
 
 object RoomManager:
 
@@ -32,6 +35,13 @@ object RoomManager:
       if room.beds <= 0 then ZIO.fail(HotelmException.InvalidRoom("Number os beds is invalid!"))
       else if room.number.isBlank then ZIO.fail(HotelmException.InvalidRoom("The room's number is invalid!"))
       else ZIO.succeed(room)
+
+    override def accept(reservation: Reservation): Task[(Reservation, Room)] =
+      for room <- repository
+                    .get(reservation.roomNumer)
+                    .someOrFail(HotelmException.RoomNotFound(reservation.roomNumer))
+        
+      yield ???
 
     override def remove(number: String): Task[Room] =
       for removed <- repository

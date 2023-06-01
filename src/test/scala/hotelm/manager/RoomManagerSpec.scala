@@ -18,7 +18,7 @@ import zio.test.*
 
 object RoomManagerSpec extends Spec:
 
-  private val testLayer = ZLayer.fromFunction(RoomManager.apply)
+  private val roomManagerLayer = ZLayer.fromFunction(RoomManager.apply)
 
   override def spec = suite("RoomManagerSpec")(
     test("It should add a valid room.") {
@@ -34,7 +34,7 @@ object RoomManagerSpec extends Spec:
         added   <- manager.add(room)
       yield assertTrue(
         added == room
-      )).provide(testLayer, mockLayer)
+      )).provide(roomManagerLayer, mockLayer)
     },
     test("It should remove a room.") {
       val expected  = Room("42C", 15)
@@ -48,7 +48,7 @@ object RoomManagerSpec extends Spec:
         removed <- manager.remove(expected.number)
       yield assertTrue(
         removed == expected
-      )).provide(testLayer, mockLayer)
+      )).provide(roomManagerLayer, mockLayer)
     },
     test("It should notify an user mistake (Room Not Found)!") {
       val mockLayer = MockRoomRepository.Remove(
@@ -61,7 +61,7 @@ object RoomManagerSpec extends Spec:
         _       <- manager.remove("42C")
       yield assertTrue(
         true
-      )).provide(testLayer, mockLayer)
+      )).provide(roomManagerLayer, mockLayer)
     } @@ TestAspect.failing[Throwable] {
       case TestFailure.Runtime(Cause.Fail(cause: HotelmException.RoomNotFound, _), _) if cause.getMessage == "42C" =>
         true
@@ -71,7 +71,7 @@ object RoomManagerSpec extends Spec:
       for
         manager <- ZIO
                      .service[RoomManager]
-                     .provide(testLayer, MockRoomRepository.empty)
+                     .provide(roomManagerLayer, MockRoomRepository.empty)
         _       <- manager.add(Room("42A", -50))
       yield assertTrue(true)
     } @@ TestAspect.failing[Throwable] {
@@ -84,7 +84,7 @@ object RoomManagerSpec extends Spec:
       for
         manager <- ZIO
                      .service[RoomManager]
-                     .provide(testLayer, MockRoomRepository.empty)
+                     .provide(roomManagerLayer, MockRoomRepository.empty)
         _       <- manager.add(Room("      ", 13))
       yield assertTrue(true)
     } @@ TestAspect.failing[Throwable] {
@@ -103,6 +103,9 @@ object RoomManagerSpec extends Spec:
         override def add(room: Room): Task[Room] =
           proxy(Add, room)
 
+        override def get(number: String): Task[Option[Room]] =
+          proxy(Get, number)
+
         override def remove(number: String): Task[Option[Room]] =
           proxy(Remove, number)
     }
@@ -110,3 +113,5 @@ object RoomManagerSpec extends Spec:
     object Add extends Effect[Room, Throwable, Room]
 
     object Remove extends Effect[String, Throwable, Option[Room]]
+
+    object Get extends Effect[String, Throwable, Option[Room]]

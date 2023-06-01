@@ -1,6 +1,9 @@
 ThisBuild / organization := "com.github.rthoth"
 ThisBuild / version      := "0.0.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.0"
+ThisBuild / scalacOptions ++= Seq(
+  "-deprecation"
+)
 
 val ZioVersion = "2.0.13"
 
@@ -14,6 +17,7 @@ lazy val root = (project in file("."))
       "dev.zio"       %% "zio-json"          % "0.5.0",
       "org.flywaydb"   % "flyway-core"       % "9.19.1",
       "com.h2database" % "h2"                % "2.1.214",
+      "org.slf4j"      % "slf4j-reload4j"    % "2.0.7",
       "dev.zio"       %% "zio-test"          % ZioVersion   % Test,
       "dev.zio"       %% "zio-test-sbt"      % ZioVersion   % Test,
       "dev.zio"       %% "zio-test-magnolia" % ZioVersion   % Test,
