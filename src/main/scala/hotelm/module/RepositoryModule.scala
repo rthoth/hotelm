@@ -1,12 +1,17 @@
 package hotelm.module
 
+import com.softwaremill.macwire.Module
+import hotelm.repository.ReservationRepository
 import hotelm.repository.RoomRepository
 import zio.Task
 import zio.ZIO
 
+@Module
 trait RepositoryModule:
 
   def roomRepository: RoomRepository
+
+  def reservationRepository: ReservationRepository
 
 object RepositoryModule:
 
@@ -14,4 +19,6 @@ object RepositoryModule:
 
   private class Default extends RepositoryModule:
 
-    override def roomRepository: RoomRepository = RoomRepository(???, ???)
+    override val roomRepository: RoomRepository = RoomRepository(???, ???)
+
+    override val reservationRepository: ReservationRepository = ReservationRepository(???, ???)

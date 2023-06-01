@@ -1,9 +1,11 @@
 package hotelm.manager
 
+import com.softwaremill.macwire.wire
 import hotelm.HotelmException
 import hotelm.Reservation
 import hotelm.Room
 import hotelm.repository.RoomRepository
+import zio.Cause
 import zio.Task
 import zio.ZIO
 
@@ -17,15 +19,16 @@ trait RoomManager:
 
 object RoomManager:
 
-  def apply(repository: RoomRepository): RoomManager = new Default(repository)
+  def apply(repository: RoomRepository, reservationManager: ReservationManager): RoomManager =
+    wire[Default]
 
-  private class Default(repository: RoomRepository) extends RoomManager:
+  private class Default(roomRepository: RoomRepository, reservationManager: ReservationManager) extends RoomManager:
 
     override def add(room: Room): Task[Room] =
       for
         validated    <- validate(room)
                           .tapErrorCause(ZIO.logWarningCause("The new room is invalid!", _))
-        insertedRoom <- repository
+        insertedRoom <- roomRepository
                           .add(validated)
                           .tap(_ => ZIO.logInfo(s"A new room ${validated.number} with ${validated.beds} was added."))
                           .tapErrorCause(ZIO.logWarningCause("It was impossible to add a new room!", _))
@@ -37,14 +40,20 @@ object RoomManager:
       else ZIO.succeed(room)
 
     override def accept(reservation: Reservation): Task[(Reservation, Room)] =
-      for room <- repository
-                    .get(reservation.roomNumer)
-                    .someOrFail(HotelmException.RoomNotFound(reservation.roomNumer))
-        
-      yield ???
+      for
+        room <- roomRepository
+                  .get(reservation.roomNumer)
+                  .someOrFail(HotelmException.RoomNotFound(reservation.roomNumer))
+                  .tapErrorCause(ZIO.logWarningCause(s"It was impossible to find room ${reservation.roomNumer}!", _))
+        _    <- reservationManager
+                  .accept(reservation, room)
+                  .tapErrorCause(
+                    ZIO.logWarningCause(s"It was impossible to make a reservation for room ${reservation.roomNumer}!", _)
+                  )
+      yield reservation -> room
 
     override def remove(number: String): Task[Room] =
-      for removed <- repository
+      for removed <- roomRepository
                        .remove(number)
                        .someOrFail(HotelmException.RoomNotFound(number))
       yield removed
