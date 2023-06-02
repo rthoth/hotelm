@@ -50,7 +50,7 @@ object ReservationRepository:
 
     import ctx.*
 
-    private val reservations = quote(querySchema[StoredReservation]("reservation"))
+    private inline def reservations = quote(querySchema[StoredReservation]("reservation"))
 
     override def add(reservation: Reservation): Task[Reservation] =
       for
