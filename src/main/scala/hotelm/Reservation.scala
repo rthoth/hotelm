@@ -13,11 +13,8 @@ final case class Reservation(
 
 object Reservation:
 
-  def apply(roomNumber: String, client: String, checkIn: LocalDateTime, checkOut: LocalDateTime): Reservation =
-    new Reservation(
-      id = UUID.randomUUID().toString,
-      roomNumber = roomNumber,
-      client = client,
-      checkIn = checkIn,
-      checkOut = checkOut
-    )
+  trait IdGenerator:
+    def nextId: String
+  
+  object IdGenerator extends IdGenerator:
+    override def nextId: String = UUID.randomUUID().toString

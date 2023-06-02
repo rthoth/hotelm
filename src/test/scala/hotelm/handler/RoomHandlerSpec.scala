@@ -113,6 +113,12 @@ object RoomHandlerSpec extends Spec:
           result = Expectation.value((reservation, room))
         )
 
+        val idGeneratorLayer = ZLayer.succeed {
+          new Reservation.IdGenerator:
+            override def nextId: String = reservation.id
+
+        }
+
         (for
           handler  <- ZIO.service[RoomHandler]
           response <- handler.book(expectedRequest, room.number).catchAll(ZIO.succeed)
@@ -120,7 +126,7 @@ object RoomHandlerSpec extends Spec:
         yield assertTrue(
           response.status == Status.Accepted,
           body == s"""{"number":"${room.number}","client":"${reservation.client}","checkIn":"${reservation.checkIn}","checkOut":"${reservation.checkOut}"}"""
-        )).provide(roomHandlerLayer, mockLayer)
+        )).provide(roomHandlerLayer, mockLayer, idGeneratorLayer)
       }
     )
   )

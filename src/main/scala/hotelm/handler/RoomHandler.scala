@@ -18,7 +18,7 @@ trait RoomHandler:
 
   def add(req: Request): IO[Response, Response]
 
-  def book(req: Request, number: String): IO[Response, Response]
+  def book(req: Request, number: String): ZIO[Reservation.IdGenerator, Response, Response]
 
   def remove(req: Request, number: String): IO[Response, Response]
 
@@ -38,11 +38,12 @@ object RoomHandler:
                      .mapError(handleError)
       yield responseAsJson(Status.Ok, RoomCreated(added))
 
-    override def book(req: Request, number: String): IO[Response, Response] =
+    override def book(req: Request, number: String): ZIO[Reservation.IdGenerator, Response, Response] =
       for
         command <- req.asJson[BookRoom]
+        newId   <- ZIO.serviceWith[Reservation.IdGenerator](_.nextId)
         result  <- manager
-                     .accept(Reservation(number, command.client, command.checkIn, command.checkOut))
+                     .accept(Reservation(newId, number, command.client, command.checkIn, command.checkOut))
                      .mapError(handleError)
       yield responseAsJson(Status.Accepted, BookRoomResponse(result._1))
 
