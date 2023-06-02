@@ -20,6 +20,7 @@ lazy val root = (project in file("."))
       "org.flywaydb"              % "flyway-core"       % "9.19.1",
       "com.h2database"            % "h2"                % "2.1.214",
       "org.slf4j"                 % "slf4j-reload4j"    % "2.0.7",
+      "io.github.arainko"        %% "ducktape"          % "0.1.8",
       "dev.zio"                  %% "zio-test"          % ZioVersion   % Test,
       "dev.zio"                  %% "zio-test-sbt"      % ZioVersion   % Test,
       "dev.zio"                  %% "zio-test-magnolia" % ZioVersion   % Test,

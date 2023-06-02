@@ -9,10 +9,7 @@ import zio.ZIO
 import zio.ZLayer
 import zio.test.*
 
-object RoomRepositorySpec extends Spec:
-
-  private val ctx = H2ZioJdbcContext(SnakeCase)
-  import ctx.*
+object RoomRepositorySpec extends RepositorySpec:
 
   override def spec = suite("RoomRepositorySpec")(
     test("It should add a new room.") {
@@ -20,7 +17,7 @@ object RoomRepositorySpec extends Spec:
       for
         repository <- ZIO.service[RoomRepository]
         result     <- repository.add(expected)
-        stored     <- ctx.run(quote(query[Room].filter(_.number == "42A").take(1)))
+        stored     <- run(quote(query[Room].filter(_.number == "42A").take(1)))
       yield assertTrue(
         result == expected,
         stored == List(expected)
@@ -30,9 +27,9 @@ object RoomRepositorySpec extends Spec:
       val expected = Room("42A", 3)
       for
         repository <- ZIO.service[RoomRepository]
-        _          <- ctx.run(quote(query[Room].insertValue(lift(expected))))
+        _          <- run(quote(query[Room].insertValue(lift(expected))))
         result     <- repository.remove("42A")
-        after      <- ctx.run(quote(query[Room].filter(_.number == "42A").take(1)))
+        after      <- run(quote(query[Room].filter(_.number == "42A").take(1)))
       yield assertTrue(
         result.contains(expected),
         after.isEmpty

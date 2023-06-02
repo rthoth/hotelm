@@ -52,7 +52,7 @@ object ReservationManager:
         previous: Option[Reservation]
     ): Task[Option[LocalDateTime]] = ZIO.attempt {
       previous match
-        case Some(Reservation(_, _, _, checkOut)) =>
+        case Some(Reservation(_, _, _, _, checkOut)) =>
           val diff = Duration.between(checkOut, reservation.checkIn)
           if diff.compareTo(config.cleaningTime) > 0 then None
           else Some(checkOut.plus(config.cleaningTime))

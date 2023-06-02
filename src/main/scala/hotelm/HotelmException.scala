@@ -12,4 +12,6 @@ object HotelmException:
 
   class UnableToInsertRoom(message: String, cause: Throwable = null) extends RuntimeException(message, cause)
 
+  class UnableToInsertReservation(message: String, cause: Throwable = null) extends RuntimeException(message, cause)
+
   class RoomNotFound(message: String, cause: Throwable = null) extends InvalidUserInput(message, cause)
