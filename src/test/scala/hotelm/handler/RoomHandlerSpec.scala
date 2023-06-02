@@ -5,6 +5,7 @@ import hotelm.Room
 import hotelm.Spec
 import hotelm.fixture.ReservationFixture
 import hotelm.manager.RoomManager
+import hotelm.manager.RoomManagerMock
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import zio.Task
@@ -92,7 +93,7 @@ object RoomHandlerSpec extends Spec:
     suite("During room booking.")(
       test("It should inform the user that the booking was successfully completed.") {
 
-        val (reservation, room) = ReservationFixture.createNew()
+        val (reservation, room) = ReservationFixture.createNewWithRoom()
 
         val expectedRequest = Request
           .post(
@@ -125,24 +126,3 @@ object RoomHandlerSpec extends Spec:
       }
     )
   )
-
-  object RoomManagerMock extends Mock[RoomManager]:
-
-    val compose = ZLayer.fromFunction((proxy: Proxy) => {
-
-      new RoomManager:
-        override def add(room: Room): Task[Room] =
-          proxy(Add, room)
-
-        override def remove(number: String): Task[Room] =
-          proxy(Remove, number)
-
-        override def accept(reservation: Reservation): Task[(Reservation, Room)] =
-          proxy(Accept, reservation)
-    })
-
-    object Add extends Effect[Room, Throwable, Room]
-
-    object Remove extends Effect[String, Throwable, Room]
-
-    object Accept extends Effect[Reservation, Throwable, (Reservation, Room)]

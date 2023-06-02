@@ -14,7 +14,7 @@ object ReservationRepositorySpec extends RepositorySpec:
 
   def spec = suite("ReservationRepositorySpec")(
     test("It should store a reservation.") {
-      val (reservation, room) = ReservationFixture.createNew()
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
 
       for
         _          <- ZIO.serviceWithZIO[RoomRepository](_.add(room))
@@ -26,7 +26,7 @@ object ReservationRepositorySpec extends RepositorySpec:
       )
     },
     test("It should search a previous reservation.") {
-      val (previous, room) = ReservationFixture.createNew()
+      val (previous, room) = ReservationFixture.createNewWithRoom()
 
       for
         _          <- ZIO.serviceWithZIO[RoomRepository](_.add(room))
@@ -45,7 +45,7 @@ object ReservationRepositorySpec extends RepositorySpec:
       )
     },
     test("It should search for reservations overlapping.") {
-      val (previous, room) = ReservationFixture.createNew()
+      val (previous, room) = ReservationFixture.createNewWithRoom()
 
       val first = previous.copy(
         id = UUID.randomUUID().toString,

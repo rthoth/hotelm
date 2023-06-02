@@ -6,4 +6,4 @@ import scala.util.Random
 object RoomFixture:
 
   def createNew() =
-    Room(number = s"${(10 + Random.nextInt(40))}${Random.any("A", "B", "C")}", beds = 1 + Random.nextInt(3))
+    Room(number = s"${(100 + Random.nextInt(500))}${Random.any("A", "B", "C", "Z")}", beds = 1 + Random.nextInt(3))

@@ -14,6 +14,8 @@ trait RoomRepository:
 
   def add(room: Room): Task[Room]
 
+  def all: Task[List[Room]]
+
   def get(number: String): Task[Option[Room]]
 
   def remove(number: String): Task[Option[Room]]
@@ -35,6 +37,8 @@ object RoomRepository:
             .mapError(HotelmException.UnableToInsertRoom("An unexpected error occurred while inserting a new room!", _))
             .filterOrFail(_ == 1)(HotelmException.UnableToInsertRoom(s"It was impossible to add room $room!"))
       yield room
+
+    override def all: Task[List[Room]] = ???
 
     override def get(number: String): Task[Option[Room]] =
       for result <- run(quote(query[Room].filter(_.number == lift(number)).take(1)))

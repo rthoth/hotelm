@@ -32,7 +32,7 @@ object ReservationManagerSpec extends Spec:
   def spec = suite("ReservationManagerSpec")(
     test("It should accept a reservation.") {
 
-      val expected @ (reservation, room) = ReservationFixture.createNew()
+      val expected @ (reservation, room) = ReservationFixture.createNewWithRoom()
       val previous                       = reservation.copy(
         checkIn = reservation.checkIn.minusDays(2),
         checkOut = reservation.checkIn.minusHours(10)
@@ -57,7 +57,7 @@ object ReservationManagerSpec extends Spec:
       )).provide(defaultReservationManagerConfig, reservationManagerLayer, reservationRepository)
     },
     test("It should refuse a reservation when the cleanup window is not respected.") {
-      val (reservation, room) = ReservationFixture.createNew()
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
       val previous            = reservation.copy(
         checkIn = reservation.checkIn.minusDays(2),
         checkOut = reservation.checkIn.minusHours(3)
@@ -75,7 +75,7 @@ object ReservationManagerSpec extends Spec:
         .provide(defaultReservationManagerConfig, reservationManagerLayer, reservationRepository)
     },
     test("It should refuse a reservation when there is any overlapping.") {
-      val (reservation, room) = ReservationFixture.createNew()
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
       val previous            = reservation.copy(
         checkIn = reservation.checkIn.minusDays(2),
         checkOut = reservation.checkIn.minusHours(5)

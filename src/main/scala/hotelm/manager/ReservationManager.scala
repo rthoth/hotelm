@@ -6,6 +6,7 @@ import hotelm.Reservation
 import hotelm.Room
 import hotelm.repository.ReservationRepository
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import zio.Task
 import zio.ZIO
@@ -13,6 +14,8 @@ import zio.ZIO
 trait ReservationManager:
 
   def accept(reservation: Reservation, room: Room): Task[(Reservation, Room)]
+
+  def searchAll(date: LocalDate): Task[List[Reservation]]
 
 object ReservationManager:
 
@@ -34,6 +37,8 @@ object ReservationManager:
         _        <- repository.add(reservation)
         _        <- ZIO.logInfo(s"A new reservation for room ${reservation.roomNumber} has been made.")
       yield (reservation, room)
+
+    override def searchAll(date: LocalDate): Task[List[Reservation]] = ???
 
     private def validate(reservation: Reservation): Task[Unit] =
       val duration = Duration.between(reservation.checkIn, reservation.checkOut)

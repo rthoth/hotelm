@@ -12,6 +12,8 @@ trait RoomManager:
 
   def add(room: Room): Task[Room]
 
+  def all: Task[List[Room]]
+
   def remove(number: String): Task[Room]
 
   def accept(reservation: Reservation): Task[(Reservation, Room)]
@@ -32,6 +34,9 @@ object RoomManager:
                           .tap(_ => ZIO.logInfo(s"A new room ${validated.number} with ${validated.beds} was added."))
                           .tapErrorCause(ZIO.logWarningCause("It was impossible to add a new room!", _))
       yield insertedRoom
+
+    override def all: Task[List[Room]] =
+      for result <- roomRepository.all yield result
 
     private def validate(room: Room): Task[Room] =
       if room.beds <= 0 then ZIO.fail(HotelmException.InvalidRoom("Number os beds is invalid!"))

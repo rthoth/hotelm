@@ -6,6 +6,7 @@ import hotelm.Room
 import hotelm.Spec
 import hotelm.fixture.ReservationFixture
 import hotelm.repository.RoomRepository
+import java.time.LocalDate
 import zio.Cause
 import zio.Task
 import zio.URLayer
@@ -94,7 +95,7 @@ object RoomManagerSpec extends Spec:
       case _ => false
     },
     test("It should accept a valid room reservation.") {
-      val (reservation, room) = ReservationFixture.createNew()
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
       val roomRepository      = RoomRepositoryMock.Get(
         assertion = Assertion.equalTo(room.number),
         result = Expectation.value(Some(room))
@@ -113,7 +114,7 @@ object RoomManagerSpec extends Spec:
       )).provide(roomManagerLayer, roomRepository, reservationManager)
     },
     test("When the room is not available, it should report.") {
-      val (reservation, room) = ReservationFixture.createNew()
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
       val roomRepository      = RoomRepositoryMock.Get(
         assertion = Assertion.equalTo(room.number),
         result = Expectation.value(Some(room))
@@ -140,6 +141,9 @@ object RoomManagerSpec extends Spec:
         override def add(room: Room): Task[Room] =
           proxy(Add, room)
 
+        override def all: Task[List[Room]] =
+          proxy(All, ())
+
         override def get(number: String): Task[Option[Room]] =
           proxy(Get, number)
 
@@ -149,17 +153,8 @@ object RoomManagerSpec extends Spec:
 
     object Add extends Effect[Room, Throwable, Room]
 
+    object All extends Effect[Unit, Throwable, List[Room]]
+
     object Remove extends Effect[String, Throwable, Option[Room]]
 
     object Get extends Effect[String, Throwable, Option[Room]]
-
-  object ReservationManagerMock extends Mock[ReservationManager]:
-
-    object Accept extends Effect[(Reservation, Room), Throwable, (Reservation, Room)]
-
-    val compose = ZLayer.fromFunction((proxy: Proxy) => {
-      new ReservationManager:
-
-        override def accept(reservation: Reservation, room: Room): Task[(Reservation, Room)] =
-          proxy(Accept, reservation, room)
-    })
