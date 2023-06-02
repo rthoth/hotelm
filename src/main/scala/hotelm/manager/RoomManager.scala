@@ -5,7 +5,6 @@ import hotelm.HotelmException
 import hotelm.Reservation
 import hotelm.Room
 import hotelm.repository.RoomRepository
-import zio.Cause
 import zio.Task
 import zio.ZIO
 

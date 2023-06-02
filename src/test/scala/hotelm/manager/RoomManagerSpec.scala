@@ -7,8 +7,6 @@ import hotelm.Spec
 import hotelm.fixture.ReservationFixture
 import hotelm.repository.RoomRepository
 import zio.Cause
-import zio.Console
-import zio.Scope
 import zio.Task
 import zio.URLayer
 import zio.ZIO

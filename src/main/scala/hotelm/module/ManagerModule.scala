@@ -1,5 +1,6 @@
 package hotelm.module
 
+import com.softwaremill.macwire.Module
 import com.softwaremill.macwire.wireWith
 import hotelm.manager.ReservationManager
 import hotelm.manager.RoomManager
@@ -7,6 +8,7 @@ import java.time.Duration
 import zio.Task
 import zio.ZIO
 
+@Module
 trait ManagerModule:
 
   def roomManager: RoomManager

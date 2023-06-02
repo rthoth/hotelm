@@ -1,8 +1,6 @@
 package hotelm.module
 
 import hotelm.Reservation
-import hotelm.handler.RoomHandler
-import hotelm.handler.VacancyHandler
 import zio.Task
 import zio.ZIO
 import zio.ZLayer
@@ -22,7 +20,8 @@ object HttpAppModule:
     Http.collectZIO[Request] {
       case req @ Method.POST -> Root / "room"                      => handlerModule.roomHandler.add(req)
       case req @ Method.DELETE -> Root / "room" / number           => handlerModule.roomHandler.remove(req, number)
-      case req @ Method.POST -> Root / "room" / number / "booking" => handlerModule.roomHandler.book(req, number).provideLayer(reservationIdGeneratorLayer)
-      case req @ Method.GET -> Root / "vacancy" / date             => handlerModule.vacancyHandler.search(req, date)
+      case req @ Method.POST -> Root / "room" / number / "booking" =>
+        handlerModule.roomHandler.book(req, number).provideLayer(reservationIdGeneratorLayer)
+      case req @ Method.GET -> Root / "occupancy" / date           => handlerModule.occupancyHandler.search(req, date)
     }
   }

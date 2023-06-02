@@ -7,11 +7,8 @@ import hotelm.Room
 import hotelm.repository.ReservationRepository
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import zio.Task
 import zio.ZIO
-import zio.json.EncoderOps
 
 trait ReservationManager:
 

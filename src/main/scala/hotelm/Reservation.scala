@@ -15,6 +15,6 @@ object Reservation:
 
   trait IdGenerator:
     def nextId: String
-  
+
   object IdGenerator extends IdGenerator:
     override def nextId: String = UUID.randomUUID().toString

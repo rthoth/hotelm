@@ -1,7 +1,6 @@
 package hotelm.repository
 
 import hotelm.Room
-import hotelm.Spec
 import io.getquill.*
 import javax.sql.DataSource
 import zio.Scope

@@ -4,13 +4,10 @@ import hotelm.Reservation
 import hotelm.Room
 import hotelm.Spec
 import hotelm.fixture.ReservationFixture
-import hotelm.handler.protocol.given
 import hotelm.manager.RoomManager
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.time.LocalDateTime
 import zio.Task
-import zio.URLayer
 import zio.ZIO
 import zio.ZLayer
 import zio.http.Body
@@ -21,13 +18,11 @@ import zio.http.Request
 import zio.http.Response
 import zio.http.Status
 import zio.http.URL
-import zio.json.*
 import zio.mock
 import zio.mock.Expectation
 import zio.mock.Mock
 import zio.mock.Proxy
 import zio.test.Assertion
-import zio.test.TestAspect
 import zio.test.assertTrue
 
 object RoomHandlerSpec extends Spec:

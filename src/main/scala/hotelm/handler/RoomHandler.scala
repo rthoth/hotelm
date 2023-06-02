@@ -1,6 +1,5 @@
 package hotelm.handler
 
-import hotelm.HotelmException
 import hotelm.Reservation
 import hotelm.Room
 import hotelm.handler.protocol.BookRoom

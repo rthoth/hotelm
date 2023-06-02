@@ -5,7 +5,6 @@ import org.h2.jdbcx.JdbcDataSource
 import zio.RLayer
 import zio.Scope
 import zio.Task
-import zio.TaskLayer
 import zio.ZIO
 import zio.ZLayer
 

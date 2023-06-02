@@ -2,7 +2,8 @@ ThisBuild / organization := "com.github.rthoth"
 ThisBuild / version      := "0.0.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.0"
 ThisBuild / scalacOptions ++= Seq(
-  "-deprecation"
+  "-deprecation",
+  "-Wunused:all"
 )
 
 val ZioVersion = "2.0.13"

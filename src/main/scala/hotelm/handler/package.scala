@@ -13,7 +13,6 @@ import zio.http.Request
 import zio.http.Response
 import zio.http.Status
 import zio.json.*
-import zio.stream.ZStream
 
 extension (req: Request)
   def asJson[T: JsonDecoder]: IO[Response, T] =

@@ -1,7 +1,6 @@
 package hotelm.repository
 
 import hotelm.Reservation
-import hotelm.Spec
 import hotelm.fixture.ReservationFixture
 import io.getquill.*
 import java.util.UUID

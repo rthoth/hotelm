@@ -6,4 +6,4 @@ import io.getquill.SnakeCase
 
 abstract class RepositorySpec extends Spec:
   protected val ctx = H2ZioJdbcContext(SnakeCase)
-  export ctx.{Environment => _, stringEncoder, stringDecoder, *}
+  export ctx.{Environment => _, *}
