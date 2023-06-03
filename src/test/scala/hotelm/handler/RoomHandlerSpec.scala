@@ -4,20 +4,15 @@ import hotelm.Reservation
 import hotelm.Room
 import hotelm.Spec
 import hotelm.fixture.ReservationFixture
+import hotelm.fixture.RoomFixture
 import hotelm.manager.RoomManager
 import hotelm.manager.RoomManagerMock
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import zio.ZIO
 import zio.ZLayer
-import zio.http.Body
-import zio.http.Header
+import zio.http.*
 import zio.http.Header.ContentType
-import zio.http.MediaType
-import zio.http.Request
-import zio.http.Response
-import zio.http.Status
-import zio.http.URL
 import zio.mock
 import zio.mock.Expectation
 import zio.test.Assertion
@@ -32,7 +27,7 @@ object RoomHandlerSpec extends Spec:
       test("It should inform the user the room was added correctly.") {
         val expectedRoom    = Room("44B", 5)
         val expectedRequest = Request
-          .post(Body.fromString("""{"number": "44B", "beds": 5}"""), URL.decode("/").toTry.get)
+          .post(Body.fromString("""{"number": "44B", "beds": 5}"""), URL(Root / "room"))
           .withHeader(Header.ContentType(MediaType.application.json))
 
         val roomManagerLayer = RoomManagerMock.Add(
@@ -52,7 +47,7 @@ object RoomHandlerSpec extends Spec:
       },
       test("It should report to the user that JSON was send is invalid.") {
         val expectedRequest = Request
-          .post(Body.fromString("""{"numbers": "44B", "bed": 5}"""), URL.decode("/").toTry.get)
+          .post(Body.fromString("""{"numbers": "44B", "bed": 5}"""), URL(Root / "room"))
           .withHeader(Header.ContentType(MediaType.application.json))
         (
           for
@@ -68,7 +63,7 @@ object RoomHandlerSpec extends Spec:
       test("It should report to the user any internal failure.") {
         val expectedRoom    = Room("44B", 5)
         val expectedRequest = Request
-          .post(Body.fromString("""{"number": "44B", "beds": 5}"""), URL.decode("/").toTry.get)
+          .post(Body.fromString("""{"number": "44B", "beds": 5}"""), URL(Root / "room"))
           .withHeader(Header.ContentType(MediaType.application.json))
 
         val roomManagerLayer = RoomManagerMock.Add(
@@ -89,7 +84,6 @@ object RoomHandlerSpec extends Spec:
     ),
     suite("During room booking.")(
       test("It should inform the user that the booking was successfully completed.") {
-
         val (reservation, room) = ReservationFixture.createNewWithRoom()
 
         val expectedRequest = Request
@@ -97,7 +91,7 @@ object RoomHandlerSpec extends Spec:
             Body.fromString(
               s"""{"client":"${reservation.client}","checkIn":"${reservation.checkIn}","checkOut":"${reservation.checkOut}"}"""
             ),
-            URL.decode(s"/${room.number}").toTry.get
+            URL(Root / "room" / room.number / "booking")
           )
           .withHeader(ContentType(MediaType.application.json))
 
@@ -120,6 +114,24 @@ object RoomHandlerSpec extends Spec:
           response.status == Status.Accepted,
           body == s"""{"number":"${room.number}","client":"${reservation.client}","checkIn":"${reservation.checkIn}","checkOut":"${reservation.checkOut}"}"""
         )).provide(roomHandlerLayer, mockLayer, idGeneratorLayer)
+      }
+    ),
+    suite("During room removing")(
+      test("It should inform the user that the room was removed correctly.") {
+        val room        = RoomFixture.createNew()
+        val req         = Request.delete(URL(Root / "room" / room.number))
+        val roomManager = RoomManagerMock.Remove(
+          assertion = Assertion.equalTo(room.number),
+          result = Expectation.value(room)
+        )
+
+        (for
+          response <- ZIO.serviceWithZIO[RoomHandler](_.remove(req, room.number))
+          body     <- response.body.asString
+        yield assertTrue(
+          response.status == Status.Ok,
+          body == s"""{"number":"${room.number}","beds":${room.beds}}"""
+        )).provide(roomHandlerLayer, roomManager)
       }
     )
   )

@@ -6,6 +6,7 @@ import hotelm.handler.protocol.BookRoom
 import hotelm.handler.protocol.BookRoomResponse
 import hotelm.handler.protocol.CreateRoom
 import hotelm.handler.protocol.RoomCreated
+import hotelm.handler.protocol.RoomDeleted
 import hotelm.manager.RoomManager
 import zio.IO
 import zio.ZIO
@@ -46,4 +47,8 @@ object RoomHandler:
                      .mapError(handleError)
       yield responseAsJson(Status.Accepted, BookRoomResponse(result._1))
 
-    override def remove(req: Request, number: String): IO[Response, Response] = ???
+    override def remove(req: Request, number: String): IO[Response, Response] =
+      for room <- manager
+                    .remove(number)
+                    .mapError(handleError)
+      yield responseAsJson(Status.Ok, RoomDeleted(room))
