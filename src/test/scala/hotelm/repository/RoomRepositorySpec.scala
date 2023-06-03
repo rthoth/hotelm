@@ -1,6 +1,7 @@
 package hotelm.repository
 
 import hotelm.Room
+import hotelm.fixture.RoomFixture
 import io.getquill.*
 import javax.sql.DataSource
 import zio.Scope
@@ -32,6 +33,15 @@ object RoomRepositorySpec extends RepositorySpec:
       yield assertTrue(
         result.contains(expected),
         after.isEmpty
+      )
+    },
+    test("It should get a specific room.") {
+      val room = RoomFixture.createNew()
+      for
+        _      <- run(quote(query[Room].insertValue(lift(room))))
+        result <- ZIO.serviceWithZIO[RoomRepository](_.get(room.number))
+      yield assertTrue(
+        result.contains(room)
       )
     }
   ).provideSome[Scope](
