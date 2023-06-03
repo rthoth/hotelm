@@ -10,11 +10,11 @@ object HttpAppModule:
 
   def apply(handlerModule: HandlerModule): Task[Nothing] =
     for
-      app    <- createApp(handlerModule)
+      app    <- createRoute(handlerModule)
       result <- Server.serve(app).provide(Server.default)
     yield result
 
-  private def createApp(handlerModule: HandlerModule): Task[App[Any]] = ZIO.succeed {
+  def createRoute(handlerModule: HandlerModule): Task[App[Any]] = ZIO.succeed {
     val reservationIdGeneratorLayer = ZLayer.succeed(Reservation.IdGenerator)
 
     Http.collectZIO[Request] {
