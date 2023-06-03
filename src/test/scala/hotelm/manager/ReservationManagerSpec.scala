@@ -3,9 +3,11 @@ package hotelm.manager
 import hotelm.HotelmException
 import hotelm.Reservation
 import hotelm.Spec
+import hotelm.fixture.LocalDateTimeFixture
 import hotelm.fixture.ReservationFixture
 import hotelm.repository.ReservationRepository
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import zio.Task
 import zio.ZIO
@@ -99,6 +101,19 @@ object ReservationManagerSpec extends Spec:
         exit    <- manager.accept(reservation, room).exit
       yield assert(exit)(Assertion.failsWithA[HotelmException.RoomUnavailable]))
         .provide(defaultReservationManagerConfig, reservationManagerLayer, reservationRepository)
+    },
+    test("It should search all reservation for a given day.") {
+      val date                  = LocalDateTimeFixture.createNew().toLocalDate
+      val reservations          = (0 until 10).map(_ => ReservationFixture.createNew()).toList
+      val reservationRepository = ReservationRepositoryMock.Search(
+        assertion = Assertion.equalTo(date),
+        result = Expectation.value(reservations)
+      )
+
+      (for result <- ZIO.serviceWithZIO[ReservationManager](_.search(date))
+      yield assertTrue(
+        result == reservations
+      )).provide(reservationManagerLayer, reservationRepository, defaultReservationManagerConfig)
     }
   )
 
@@ -107,12 +122,16 @@ object ReservationManagerSpec extends Spec:
     object SearchPrevious     extends Effect[(String, LocalDateTime), Throwable, Option[Reservation]]
     object SearchIntersection extends Effect[(String, LocalDateTime, LocalDateTime), Throwable, List[Reservation]]
     object Add                extends Effect[Reservation, Throwable, Reservation]
+    object Search             extends Effect[LocalDate, Throwable, List[Reservation]]
 
     val compose = ZLayer.fromFunction((proxy: Proxy) => {
       new ReservationRepository:
 
         override def add(reservation: Reservation): Task[Reservation] =
           proxy(Add, reservation)
+
+        override def search(date: LocalDate): Task[List[Reservation]] =
+          proxy(Search, date)
 
         override def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]] =
           proxy(SearchPrevious, room, checkIn)

@@ -9,7 +9,9 @@ import io.getquill.context.sql.idiom.SqlIdiom
 import io.github.arainko.ducktape.Transformer
 import io.github.arainko.ducktape.into
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.sql.DataSource
 import zio.Task
 import zio.TaskLayer
@@ -18,6 +20,8 @@ import zio.ZIO
 trait ReservationRepository:
 
   def add(reservation: Reservation): Task[Reservation]
+
+  def search(date: LocalDate): Task[List[Reservation]]
 
   def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]]
 
@@ -59,6 +63,15 @@ object ReservationRepository:
                      .provideLayer(dataSourceLayer)
                      .filterOrFail(_ == 1)(HotelmException.UnableToInsertReservation(reservation.roomNumber))
       yield reservation
+
+    override def search(date: LocalDate): Task[List[Reservation]] =
+      for
+        starting <- convertTo[Timestamp](LocalDateTime.of(date, LocalTime.of(0, 0)))
+        ending   <- convertTo[Timestamp](LocalDateTime.of(date, LocalTime.of(23, 59, 59)))
+        result   <- run(quote(reservations.filter(r => r.checkIn < ending && r.checkOut > starting)))
+                      .provideLayer(dataSourceLayer)
+                      .flatMap(ZIO.foreach(_)(convertTo[Reservation].apply))
+      yield result
 
     override def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]] =
       for

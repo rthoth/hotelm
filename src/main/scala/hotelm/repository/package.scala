@@ -21,4 +21,6 @@ class PartiallyAppliedConversion[T]:
 // https://github.com/zio/zio-protoquill/issues/208#issuecomment-1378695160
 extension (inline timestamp: Timestamp)
   inline def <=(other: Timestamp) = quote(sql"$timestamp <= $other".as[Boolean])
+  inline def <(other: Timestamp)  = quote(sql"$timestamp < $other".as[Boolean])
   inline def >=(other: Timestamp) = quote(sql"$timestamp >= $other".as[Boolean])
+  inline def >(other: Timestamp)  = quote(sql"$timestamp > $other".as[Boolean])

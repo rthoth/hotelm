@@ -38,7 +38,8 @@ object ReservationManager:
         _        <- ZIO.logInfo(s"A new reservation for room ${reservation.roomNumber} has been made.")
       yield (reservation, room)
 
-    override def search(date: LocalDate): Task[List[Reservation]] = ???
+    override def search(date: LocalDate): Task[List[Reservation]] =
+      repository.search(date)
 
     private def validate(reservation: Reservation): Task[Unit] =
       val duration = Duration.between(reservation.checkIn, reservation.checkOut)
