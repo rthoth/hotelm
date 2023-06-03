@@ -15,7 +15,7 @@ trait ReservationManager:
 
   def accept(reservation: Reservation, room: Room): Task[(Reservation, Room)]
 
-  def searchAll(date: LocalDate): Task[List[Reservation]]
+  def search(date: LocalDate): Task[List[Reservation]]
 
 object ReservationManager:
 
@@ -38,7 +38,7 @@ object ReservationManager:
         _        <- ZIO.logInfo(s"A new reservation for room ${reservation.roomNumber} has been made.")
       yield (reservation, room)
 
-    override def searchAll(date: LocalDate): Task[List[Reservation]] = ???
+    override def search(date: LocalDate): Task[List[Reservation]] = ???
 
     private def validate(reservation: Reservation): Task[Unit] =
       val duration = Duration.between(reservation.checkIn, reservation.checkOut)

@@ -20,6 +20,6 @@ object ReservationManagerMock extends Mock[ReservationManager]:
       override def accept(reservation: Reservation, room: Room): Task[(Reservation, Room)] =
         proxy(Accept, reservation, room)
 
-      override def searchAll(date: LocalDate): Task[List[Reservation]] =
+      override def search(date: LocalDate): Task[List[Reservation]] =
         proxy(SearchAll, date)
   })
