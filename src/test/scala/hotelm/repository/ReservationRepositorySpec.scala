@@ -4,7 +4,6 @@ import hotelm.Reservation
 import hotelm.Room
 import hotelm.fixture.LocalDateTimeFixture
 import hotelm.fixture.ReservationFixture
-import hotelm.repository.ReservationRepository.StoredReservation
 import io.getquill.*
 import java.time.LocalDateTime
 import java.util.UUID

@@ -8,7 +8,6 @@ import hotelm.manager.RoomManager
 import hotelm.manager.RoomManagerMock
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import zio.Task
 import zio.ZIO
 import zio.ZLayer
 import zio.http.Body
@@ -21,8 +20,6 @@ import zio.http.Status
 import zio.http.URL
 import zio.mock
 import zio.mock.Expectation
-import zio.mock.Mock
-import zio.mock.Proxy
 import zio.test.Assertion
 import zio.test.assertTrue
 

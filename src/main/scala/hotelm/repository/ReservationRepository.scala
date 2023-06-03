@@ -82,7 +82,14 @@ object ReservationRepository:
     override def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]] =
       for
         checkIn <- convertTo[Timestamp](checkIn)
-        result  <- run(quote(reservations.filter(r => r.checkOut <= lift(checkIn)).sortBy(_.checkOut)(Ord.desc).take(1)))
+        result  <- run(
+                     quote(
+                       reservations
+                         .filter(r => r.roomNumber == lift(room) && r.checkOut <= lift(checkIn))
+                         .sortBy(_.checkOut)(Ord.desc)
+                         .take(1)
+                     )
+                   )
                      .provideLayer(dataSourceLayer)
                      .flatMap(ZIO.foreach(_)(convertTo[Reservation].apply))
       yield result.headOption
@@ -99,7 +106,7 @@ object ReservationRepository:
           run(
             quote(
               reservations
-                .filter(r => r.checkOut >= lift(checkIn) && r.checkIn <= lift(checkOut))
+                .filter(r => r.roomNumber == lift(room) && r.checkOut >= lift(checkIn) && r.checkIn <= lift(checkOut))
                 .sortBy(_.checkIn)
             )
           )
