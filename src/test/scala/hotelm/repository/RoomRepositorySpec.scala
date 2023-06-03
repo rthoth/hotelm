@@ -43,6 +43,16 @@ object RoomRepositorySpec extends RepositorySpec:
       yield assertTrue(
         result.contains(room)
       )
+    },
+    test("It should get all rooms.") {
+      val rooms       = for (_ <- 0 until 13) yield RoomFixture.createNew()
+      val insertQuery = quote(liftQuery(rooms).foreach(room => query[Room].insertValue(room)))
+      for
+        _      <- run(insertQuery)
+        result <- ZIO.serviceWithZIO[RoomRepository](_.all)
+      yield assertTrue(
+        result == rooms
+      )
     }
   ).provideSome[Scope](
     H2DataSource.layer,
