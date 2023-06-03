@@ -13,6 +13,10 @@ final case class Reservation(
 
 object Reservation:
 
+  given Ordering[Reservation] = (a, b) =>
+    val x = a.checkIn.compareTo(b.checkIn)
+    if x != 0 then x else a.checkOut.compareTo(b.checkOut)
+
   trait IdGenerator:
     def nextId: String
 

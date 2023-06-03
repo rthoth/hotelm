@@ -1,8 +1,12 @@
 package hotelm.repository
 
 import hotelm.Reservation
+import hotelm.Room
+import hotelm.fixture.LocalDateTimeFixture
 import hotelm.fixture.ReservationFixture
+import hotelm.repository.ReservationRepository.StoredReservation
 import io.getquill.*
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 import zio.Scope
@@ -67,6 +71,26 @@ object ReservationRepositorySpec extends RepositorySpec:
         result     <- repository.searchIntersection(room.number, newReservation.checkIn, newReservation.checkOut)
       yield assertTrue(
         result == List(first, previous)
+      )
+    },
+    test("It should search all reservations for a given day.") {
+      val date         = LocalDateTimeFixture.createNew().toLocalDate
+      val reservations = (for _ <- 0 until 10 yield
+        val (reservation, room) = ReservationFixture.createNewWithRoom()
+        reservation.copy(
+          checkIn = LocalDateTime.of(date, reservation.checkIn.toLocalTime),
+          checkOut = LocalDateTime.of(date, reservation.checkOut.toLocalTime)
+        ) -> room
+      ).toList
+
+      for
+        roomRepository <- ZIO.service[RoomRepository]
+        repository     <- ZIO.service[ReservationRepository]
+        _              <- ZIO.foreach(reservations)((_, room) => roomRepository.add(room))
+        _              <- ZIO.foreach(reservations)((reservation, _) => repository.add(reservation))
+        result         <- repository.search(date)
+      yield assertTrue(
+        result == reservations.map(_._1).sorted
       )
     }
   ).provideSome[Scope](

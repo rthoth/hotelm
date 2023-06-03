@@ -11,7 +11,7 @@ import zio.test.*
 
 object RoomRepositorySpec extends RepositorySpec:
 
-  override def spec = suite("RoomRepositorySpec")(
+  override def spec                 = suite("RoomRepositorySpec")(
     test("It should add a new room.") {
       val expected = Room("42A", 2)
       for

@@ -68,7 +68,13 @@ object ReservationRepository:
       for
         starting <- convertTo[Timestamp](LocalDateTime.of(date, LocalTime.of(0, 0)))
         ending   <- convertTo[Timestamp](LocalDateTime.of(date, LocalTime.of(23, 59, 59)))
-        result   <- run(quote(reservations.filter(r => r.checkIn < ending && r.checkOut > starting)))
+        result   <- run(
+                      quote(
+                        reservations
+                          .filter(r => r.checkIn < lift(ending) && r.checkOut > lift(starting))
+                          .sortBy(r => (r.checkIn, r.checkOut))(Ord.asc)
+                      )
+                    )
                       .provideLayer(dataSourceLayer)
                       .flatMap(ZIO.foreach(_)(convertTo[Reservation].apply))
       yield result
