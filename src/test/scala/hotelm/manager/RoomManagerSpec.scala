@@ -5,6 +5,7 @@ import hotelm.Reservation
 import hotelm.Room
 import hotelm.Spec
 import hotelm.fixture.ReservationFixture
+import hotelm.fixture.RoomFixture
 import hotelm.repository.RoomRepository
 import java.time.LocalDate
 import zio.Cause
@@ -130,6 +131,19 @@ object RoomManagerSpec extends Spec:
         exit    <- manager.accept(reservation).exit
       yield assert(exit)(Assertion.failsWithA[HotelmException.RoomUnavailable]))
         .provide(roomManagerLayer, roomRepository, reservationManager)
+    },
+    test("It should return all registered rooms") {
+
+      val expected       = (for (_ <- 0 until 10) yield RoomFixture.createNew()).toList
+      val roomRepository = RoomRepositoryMock.All(
+        assertion = Assertion.anything,
+        result = Expectation.value(expected)
+      )
+
+      (for result <- ZIO.serviceWithZIO[RoomManager](_.all)
+      yield assertTrue(
+        result == expected
+      )).provide(roomManagerLayer, roomRepository, ReservationManagerMock.empty)
     }
   )
 
@@ -153,7 +167,7 @@ object RoomManagerSpec extends Spec:
 
     object Add extends Effect[Room, Throwable, Room]
 
-    object All extends Effect[Unit, Throwable, List[Room]]
+    object All extends Effect[Any, Throwable, List[Room]]
 
     object Remove extends Effect[String, Throwable, Option[Room]]
 
