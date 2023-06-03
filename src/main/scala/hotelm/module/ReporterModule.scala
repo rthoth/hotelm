@@ -1,6 +1,7 @@
 package hotelm.module
 
 import com.softwaremill.macwire.Module
+import com.softwaremill.macwire.wireWith
 import hotelm.reporter.OccupancyReporter
 import zio.Task
 import zio.ZIO
@@ -12,10 +13,10 @@ trait ReporterModule:
 
 object ReporterModule:
 
-  def apply(repositoryModule: RepositoryModule): Task[ReporterModule] = ZIO.attempt {
-    new Default(repositoryModule)
+  def apply(managerModule: ManagerModule): Task[ReporterModule] = ZIO.attempt {
+    new Default(managerModule)
   }
 
-  private class Default(repositoryModule: RepositoryModule) extends ReporterModule:
+  private class Default(managerModule: ManagerModule) extends ReporterModule:
 
-    override def occupancyReporter: OccupancyReporter = ???
+    override def occupancyReporter: OccupancyReporter = wireWith(OccupancyReporter.apply)
