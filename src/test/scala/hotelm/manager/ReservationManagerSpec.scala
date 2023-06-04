@@ -40,6 +40,11 @@ object ReservationManagerSpec extends Spec:
         checkOut = reservation.checkIn.minusHours(10)
       )
 
+      val next = reservation.copy(
+        checkIn = reservation.checkOut.plusDays(2),
+        checkOut = reservation.checkOut.plusHours(12)
+      )
+
       val reservationRepository = ReservationRepositoryMock.SearchPrevious(
         assertion = Assertion.equalTo((room.number, reservation.checkIn)),
         result = Expectation.value(Some(previous))
@@ -49,6 +54,9 @@ object ReservationManagerSpec extends Spec:
       ) and ReservationRepositoryMock.Add(
         assertion = Assertion.equalTo(reservation),
         result = Expectation.value(reservation)
+      ) and ReservationRepositoryMock.SearchNext(
+        assertion = Assertion.equalTo((room.number, reservation.checkOut)),
+        result = Expectation.value(Some(next))
       )
 
       (for
@@ -58,7 +66,9 @@ object ReservationManagerSpec extends Spec:
         result == expected
       )).provide(defaultReservationManagerConfig, reservationManagerLayer, reservationRepository)
     },
-    test("It should refuse a reservation when the cleanup window is not respected.") {
+    test(
+      "It should refuse a reservation when the cleanup window related to the previous reservation is not respected."
+    ) {
       val (reservation, room) = ReservationFixture.createNewWithRoom()
       val previous            = reservation.copy(
         checkIn = reservation.checkIn.minusDays(2),
@@ -68,6 +78,36 @@ object ReservationManagerSpec extends Spec:
       val reservationRepository = ReservationRepositoryMock.SearchPrevious(
         assertion = Assertion.equalTo((room.number, reservation.checkIn)),
         result = Expectation.value(Some(previous))
+      ) and ReservationRepositoryMock.SearchNext(
+        assertion = Assertion.equalTo((room.number, reservation.checkOut)),
+        result = Expectation.value(None)
+      )
+
+      (for
+        manager <- ZIO.service[ReservationManager]
+        exit    <- manager.accept(reservation, room).exit
+      yield assert(exit)(Assertion.failsWithA[HotelmException.RoomUnavailable]))
+        .provide(defaultReservationManagerConfig, reservationManagerLayer, reservationRepository)
+    },
+    test(
+      "It should refuse a reservation when the cleanup window related to the next reservation is not respected."
+    ) {
+      val (reservation, room) = ReservationFixture.createNewWithRoom()
+      val previous            = reservation.copy(
+        checkIn = reservation.checkIn.minusDays(2),
+        checkOut = reservation.checkIn.minusHours(8)
+      )
+      val next                = reservation.copy(
+        checkIn = reservation.checkOut.plusHours(2),
+        checkOut = reservation.checkOut.plusDays(2)
+      )
+
+      val reservationRepository = ReservationRepositoryMock.SearchPrevious(
+        assertion = Assertion.equalTo((room.number, reservation.checkIn)),
+        result = Expectation.value(Some(previous))
+      ) and ReservationRepositoryMock.SearchNext(
+        assertion = Assertion.equalTo((room.number, reservation.checkOut)),
+        result = Expectation.value(Some(next))
       )
 
       (for
@@ -94,6 +134,9 @@ object ReservationManagerSpec extends Spec:
       ) and ReservationRepositoryMock.SearchIntersection(
         assertion = Assertion.equalTo((reservation.roomNumber, reservation.checkIn, reservation.checkOut)),
         result = Expectation.value(List(overlapping))
+      ) and ReservationRepositoryMock.SearchNext(
+        assertion = Assertion.equalTo((room.number, reservation.checkOut)),
+        result = Expectation.value(None)
       )
 
       (for

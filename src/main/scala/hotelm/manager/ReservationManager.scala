@@ -29,7 +29,8 @@ object ReservationManager:
       for
         _        <- validate(reservation)
         previous <- repository.searchPrevious(room.number, reservation.checkIn)
-        _        <- checkAvailability(reservation, previous)
+        next     <- repository.searchNext(room.number, reservation.checkOut)
+        _        <- checkAvailability(reservation, previous, next)
                       .flatMap(reportUnavailability(room))
         _        <- repository
                       .searchIntersection(room.number, reservation.checkIn, reservation.checkOut)
@@ -49,21 +50,34 @@ object ReservationManager:
         ZIO.fail(HotelmException.InvalidReservation("The reservation is too long!"))
       else ZIO.unit
 
-    /** If it's no available, it'll return a suggestion. */
+    /** If it's no available, it'll return suggestions. */
     private def checkAvailability(
         reservation: Reservation,
-        previous: Option[Reservation]
-    ): Task[Option[LocalDateTime]] = ZIO.attempt {
-      previous match
+        previous: Option[Reservation],
+        next: Option[Reservation]
+    ): Task[(Option[LocalDateTime], Option[LocalDateTime])] = ZIO.attempt {
+      val previousSuggestion = previous match
         case Some(Reservation(_, _, _, _, checkOut)) =>
           val diff = Duration.between(checkOut, reservation.checkIn)
           if diff.compareTo(config.cleaningTime) > 0 then None
           else Some(checkOut.plus(config.cleaningTime))
 
         case None => None
+
+      val nextSuggestion = next match
+        case Some(Reservation(_, _, _, checkIn, _)) =>
+          val diff = Duration.between(reservation.checkOut, checkIn)
+          if diff.compareTo(config.cleaningTime) > 0 then None
+          else Some(checkIn.minus(config.cleaningTime))
+
+        case None => None
+
+      (previousSuggestion, nextSuggestion)
     }
 
-    private def reportUnavailability(room: Room)(suggestion: Option[LocalDateTime]): Task[Unit] =
+    private def reportUnavailability(room: Room)(
+        suggestion: (Option[LocalDateTime], Option[LocalDateTime])
+    ): Task[Unit] =
       suggestion match
-        case Some(_) => ZIO.fail(HotelmException.RoomUnavailable(room.number))
-        case None    => ZIO.unit
+        case (a, b) if a.isDefined || b.isDefined => ZIO.fail(HotelmException.RoomUnavailable(room.number))
+        case _                                    => ZIO.unit
