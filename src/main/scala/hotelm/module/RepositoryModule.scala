@@ -2,11 +2,13 @@ package hotelm.module
 
 import com.softwaremill.macwire.Module
 import com.softwaremill.macwire.wireWith
+import hotelm.repository.Migration
 import hotelm.repository.ReservationRepository
 import hotelm.repository.RoomRepository
 import io.getquill.H2ZioJdbcContext
 import io.getquill.SnakeCase
 import java.io.File
+import javax.sql.DataSource
 import org.h2.jdbcx.JdbcDataSource
 import zio.Task
 import zio.ZIO
@@ -21,21 +23,26 @@ trait RepositoryModule:
 
 object RepositoryModule:
 
-  def apply(file: File): Task[RepositoryModule] = ZIO.attempt(new Default(file))
+  def apply(file: File): Task[RepositoryModule] =
+    for dataSource <- createDataSource(file) yield Default(dataSource)
 
-  private class Default(file: File) extends RepositoryModule:
+  private def createDataSource(file: File): Task[DataSource] =
+    for
+      dataSource <- ZIO.attempt {
+                      val dataSource = JdbcDataSource()
+                      dataSource.setUrl(s"jdbc:h2:file:${file.getCanonicalPath}")
+                      dataSource.setUser("sa")
+                      dataSource.setPassword("sa")
+                      dataSource
+                    }
+      _          <- Migration(dataSource)
+    yield dataSource
 
-    private val dataSourceLayer = ZLayer.fromZIO {
-      ZIO.attemptBlocking {
-        val dataSource = JdbcDataSource()
-        dataSource.setUrl(s"jdbc:h2:file:${file.getCanonicalPath}")
-        dataSource.setUser("sa")
-        dataSource.setPassword("sa")
-        dataSource
-      }
-    }
+  private class Default(dataSource: DataSource) extends RepositoryModule:
 
     private val context = new H2ZioJdbcContext(SnakeCase)
+
+    private val dataSourceLayer = ZLayer.succeed(dataSource)
 
     override val roomRepository: RoomRepository = wireWith(RoomRepository.apply)
 
