@@ -49,15 +49,23 @@ object RoomManager:
                   .get(reservation.roomNumber)
                   .tapErrorCause(ZIO.logWarningCause(s"It was impossible to find room ${reservation.roomNumber}!", _))
                   .someOrFail(HotelmException.RoomNotFound(reservation.roomNumber))
-        _    <- reservationManager
-                  .accept(reservation, room)
-                  .tapErrorCause(
-                    ZIO.logWarningCause(s"It was impossible to make a reservation for room ${reservation.roomNumber}!", _)
-                  )
+        _    <-
+          reservationManager
+            .accept(reservation, room)
+            .tap(_ =>
+              ZIO.logInfo(
+                s"A new reservation was accepted for room ${room.number}, client=${reservation.client}, checkIn=${reservation.checkIn} and checkOut=${reservation.checkOut}."
+              )
+            )
+            .tapErrorCause(
+              ZIO.logWarningCause(s"It was impossible to make a reservation for room ${reservation.roomNumber}!", _)
+            )
       yield reservation -> room
 
     override def remove(number: String): Task[Room] =
       for removed <- roomRepository
                        .remove(number)
                        .someOrFail(HotelmException.RoomNotFound(number))
+                       .tap(_ => ZIO.logInfo(s"Room ${number} was been removed."))
+                       .tapErrorCause(ZIO.logWarningCause(s"It was impossible to remove room ${number}!", _))
       yield removed
