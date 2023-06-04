@@ -119,7 +119,9 @@ object ReservationManagerSpec extends Spec:
 
   object ReservationRepositoryMock extends Mock[ReservationRepository]:
 
-    object SearchPrevious     extends Effect[(String, LocalDateTime), Throwable, Option[Reservation]]
+    object SearchPrevious extends Effect[(String, LocalDateTime), Throwable, Option[Reservation]]
+
+    object SearchNext         extends Effect[(String, LocalDateTime), Throwable, Option[Reservation]]
     object SearchIntersection extends Effect[(String, LocalDateTime, LocalDateTime), Throwable, List[Reservation]]
     object Add                extends Effect[Reservation, Throwable, Reservation]
     object Search             extends Effect[LocalDate, Throwable, List[Reservation]]
@@ -135,6 +137,9 @@ object ReservationManagerSpec extends Spec:
 
         override def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]] =
           proxy(SearchPrevious, room, checkIn)
+
+        override def searchNext(room: String, checkOut: LocalDateTime): Task[Option[Reservation]] =
+          proxy(SearchNext, room, checkOut)
 
         override def searchIntersection(
             room: String,

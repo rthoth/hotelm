@@ -25,6 +25,8 @@ trait ReservationRepository:
 
   def searchPrevious(room: String, checkIn: LocalDateTime): Task[Option[Reservation]]
 
+  def searchNext(room: String, checkOut: LocalDateTime): Task[Option[Reservation]]
+
   def searchIntersection(room: String, checkIn: LocalDateTime, checkOut: LocalDateTime): Task[List[Reservation]]
 
 object ReservationRepository:
@@ -92,6 +94,21 @@ object ReservationRepository:
                    )
                      .provideLayer(dataSourceLayer)
                      .flatMap(ZIO.foreach(_)(convertTo[Reservation].apply))
+      yield result.headOption
+
+    override def searchNext(room: String, checkOut: LocalDateTime): Task[Option[Reservation]] =
+      for
+        checkOut <- convertTo[Timestamp](checkOut)
+        result   <- run(
+                      quote(
+                        reservations
+                          .filter(r => r.roomNumber == lift(room) && r.checkIn >= lift(checkOut))
+                          .sortBy(_.checkIn)(Ord.asc)
+                          .take(1)
+                      )
+                    )
+                      .provideLayer(dataSourceLayer)
+                      .flatMap(ZIO.foreach(_)(convertTo[Reservation].apply))
       yield result.headOption
 
     override def searchIntersection(

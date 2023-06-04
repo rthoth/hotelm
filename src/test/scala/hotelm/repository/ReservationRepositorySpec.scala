@@ -47,6 +47,26 @@ object ReservationRepositorySpec extends RepositorySpec:
         result.contains(previous)
       )
     },
+    test("It should search a next reservation.") {
+      val (next, room) = ReservationFixture.createNewWithRoom()
+
+      for
+        _          <- ZIO.serviceWithZIO[RoomRepository](_.add(room))
+        repository <- ZIO.service[ReservationRepository]
+        _          <- repository.add(next)
+        _          <- repository.add(
+                        next.copy(
+                          client = "Next",
+                          id = UUID.randomUUID().toString,
+                          checkIn = next.checkOut.plusDays(2),
+                          checkOut = next.checkOut.plusDays(3)
+                        )
+                      )
+        result     <- repository.searchNext(next.roomNumber, next.checkIn.minusHours(7))
+      yield assertTrue(
+        result.contains(next)
+      )
+    },
     test("It should search for reservations overlapping.") {
       val (previous, room) = ReservationFixture.createNewWithRoom()
 
