@@ -45,7 +45,7 @@ object RoomRepositorySpec extends RepositorySpec:
       )
     },
     test("It should get all rooms.") {
-      val rooms       = for (_ <- 0 until 13) yield RoomFixture.createNew()
+      val rooms       = (for (_ <- 0 until 13) yield RoomFixture.createNew()).sortBy(_.number)
       val insertQuery = quote(liftQuery(rooms).foreach(room => query[Room].insertValue(room)))
       for
         _      <- run(insertQuery)
