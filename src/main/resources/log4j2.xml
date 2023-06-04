@@ -11,5 +11,6 @@
         </Root>
         <Logger name="org.flywaydb" level="WARN"/>
         <Logger name="io.netty" level="WARN"/>
+        <Logger name="io.getquill" level="WARN"/>
     </Loggers>
 </Configuration>

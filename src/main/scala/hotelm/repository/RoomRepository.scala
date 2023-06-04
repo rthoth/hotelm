@@ -39,7 +39,7 @@ object RoomRepository:
       yield room
 
     override def all: Task[List[Room]] =
-      for result <- run(quote(query[Room])).provideLayer(dataSourceLayer) yield result
+      for result <- run(quote(query[Room].sortBy(_.number)(Ord.asc))).provideLayer(dataSourceLayer) yield result
 
     override def get(number: String): Task[Option[Room]] =
       for result <- run(quote(query[Room].filter(_.number == lift(number)).take(1)))
