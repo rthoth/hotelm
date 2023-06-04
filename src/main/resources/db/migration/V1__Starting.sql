@@ -5,7 +5,7 @@ CREATE TABLE room (
 
 CREATE TABLE reservation (
     id varchar(36) primary key,
-    room_number varchar(8) not null references room(number),
+    room_number varchar(8) not null references room(number) ON DELETE CASCADE,
     client varchar(256) not null,
     check_in timestamp  not null,
     check_out timestamp not null
