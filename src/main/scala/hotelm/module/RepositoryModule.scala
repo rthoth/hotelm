@@ -40,6 +40,8 @@ object RepositoryModule:
 
   private class Default(dataSource: DataSource) extends RepositoryModule:
 
+    private val exceptionMapper = hotelm.repository.H2ExceptionMapper
+
     private val context = new H2ZioJdbcContext(SnakeCase)
 
     private val dataSourceLayer = ZLayer.succeed(dataSource)

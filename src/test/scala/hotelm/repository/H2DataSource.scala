@@ -1,5 +1,6 @@
 package hotelm.repository
 
+import java.util.concurrent.atomic.AtomicInteger
 import javax.sql.DataSource
 import org.h2.jdbcx.JdbcDataSource
 import zio.RLayer
@@ -10,8 +11,10 @@ import zio.ZLayer
 
 object H2DataSource:
 
+  private val count = AtomicInteger(100)
+  def databaseName  = s"database-${count.getAndIncrement()}"
+
   def layer: RLayer[Scope, DataSource] = {
-    val databaseName = s"database-${System.currentTimeMillis()}"
 
     ZLayer.fromZIO {
       ZIO.acquireRelease(

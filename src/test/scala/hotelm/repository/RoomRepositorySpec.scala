@@ -58,6 +58,6 @@ object RoomRepositorySpec extends RepositorySpec:
     H2DataSource.layer,
     ZLayer.fromZIO {
       for dataSource <- ZIO.service[DataSource]
-      yield RoomRepository(ctx, ZLayer.succeed(dataSource))
+      yield RoomRepository(ctx, ZLayer.succeed(dataSource), H2ExceptionMapper)
     }
   )

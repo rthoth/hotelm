@@ -33,7 +33,8 @@ object ReservationRepository:
 
   def apply(
       ctx: ZioJdbcContext[SqlIdiom, NamingStrategy],
-      dataSourceLayer: TaskLayer[DataSource]
+      dataSourceLayer: TaskLayer[DataSource],
+      exceptionMapper: ExceptionMapper
   ): ReservationRepository =
     wire[Default]
 
@@ -51,8 +52,11 @@ object ReservationRepository:
   private given Transformer[StoredReservation, Reservation] =
     _.into[Reservation].transform()
 
-  private class Default(ctx: ZioJdbcContext[SqlIdiom, NamingStrategy], dataSourceLayer: TaskLayer[DataSource])
-      extends ReservationRepository:
+  private class Default(
+      ctx: ZioJdbcContext[SqlIdiom, NamingStrategy],
+      dataSourceLayer: TaskLayer[DataSource],
+      exceptionMapper: ExceptionMapper
+  ) extends ReservationRepository:
 
     import ctx.*
 
@@ -63,6 +67,7 @@ object ReservationRepository:
         toStore <- convertTo[StoredReservation](reservation)
         _       <- run(quote(reservations.insertValue(lift(toStore))))
                      .provideLayer(dataSourceLayer)
+                     .mapError(exceptionMapper("It was impossible to add reservation!"))
                      .filterOrFail(_ == 1)(HotelmException.UnableToInsertReservation(reservation.roomNumber))
       yield reservation
 

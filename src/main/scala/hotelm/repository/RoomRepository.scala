@@ -1,5 +1,6 @@
 package hotelm.repository
 
+import com.softwaremill.macwire.wire
 import hotelm.HotelmException
 import hotelm.Room
 import io.getquill.*
@@ -23,8 +24,11 @@ trait RoomRepository:
 
 object RoomRepository:
 
-  def apply(ctx: ZioJdbcContext[SqlIdiom, NamingStrategy], dataSourceLayer: TaskLayer[DataSource]): RoomRepository =
-    new Default(ctx, dataSourceLayer)
+  def apply(
+      ctx: ZioJdbcContext[SqlIdiom, NamingStrategy],
+      dataSourceLayer: TaskLayer[DataSource],
+      exceptionMapper: ExceptionMapper
+  ): RoomRepository = wire[Default]
 
   private case class StoredRoom(number: String, beds: Int)
 
@@ -34,8 +38,11 @@ object RoomRepository:
   private given Transformer[Room, StoredRoom] =
     Transformer.define.build()
 
-  private class Default(ctx: ZioJdbcContext[SqlIdiom, NamingStrategy], dataSourceLayer: TaskLayer[DataSource])
-      extends RoomRepository:
+  private class Default(
+      ctx: ZioJdbcContext[SqlIdiom, NamingStrategy],
+      dataSourceLayer: TaskLayer[DataSource],
+      exceptionMapper: ExceptionMapper
+  ) extends RoomRepository:
 
     import ctx.*
 
@@ -47,7 +54,7 @@ object RoomRepository:
         _       <-
           run(quote { rooms.insertValue(lift(toStore)) })
             .provideLayer(dataSourceLayer)
-            .mapError(HotelmException.UnableToInsertRoom("An unexpected error occurred while inserting a new room!", _))
+            .mapError(exceptionMapper(s"It was impossible to add room ${room.number}!"))
             .filterOrFail(_ == 1)(HotelmException.UnableToInsertRoom(s"It was impossible to add room $room!"))
       yield room
 
@@ -71,4 +78,6 @@ object RoomRepository:
         result <- list match
                     case List(stored) => run(quote(select.delete)) *> convertTo[Room](stored).option
                     case _            => ZIO.none
-      yield result).provideLayer(dataSourceLayer)
+      yield result)
+        .provideLayer(dataSourceLayer)
+        .mapError(exceptionMapper(s"It was impossible to remove room ${number}!"))

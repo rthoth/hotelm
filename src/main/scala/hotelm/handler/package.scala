@@ -38,5 +38,5 @@ def responseAsJson[T: JsonEncoder](status: Status, payload: T): Response =
 
 def handleError(cause: Throwable): Response =
   cause match
-    case _: HotelmException.InvalidUserInput => responseAsJson(Status.BadRequest, HotelmError(cause))
+    case _: HotelmException.InvalidParameter => responseAsJson(Status.BadRequest, HotelmError(cause))
     case _                                   => responseAsJson(Status.InternalServerError, HotelmError("Unexpected internal error!"))

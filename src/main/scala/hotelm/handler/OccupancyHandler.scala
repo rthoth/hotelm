@@ -35,4 +35,4 @@ object OccupancyHandler:
     private def parseLocalDate(date: String): Task[LocalDate] =
       ZIO
         .attempt(LocalDate.parse(date))
-        .mapError(HotelmException.InvalidUserInput("Invalid date!", _))
+        .mapError(HotelmException.InvalidParameter("Invalid date!", _))
